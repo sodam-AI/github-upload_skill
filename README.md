@@ -173,7 +173,7 @@ Each step has built-in safeguards: rsync prevents accidental inclusion of node_m
 
 ```
 github-upload/
-├── SKILL.md          # Skill definition — instructions for Claude (727 lines)
+├── SKILL.md          # Skill definition — instructions for Claude
 ├── README.md         # English documentation (this file)
 ├── README.ko.md      # Korean documentation (identical content)
 └── LICENSE           # MIT License

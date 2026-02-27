@@ -1,13 +1,20 @@
 ---
 name: github-upload
-description: "GitHub에 프로젝트를 업로드하거나 관리할 때 사용하는 스킬. 트리거: 'GitHub 업로드', 'git push', '깃허브에 올려줘', '레포 만들어줘', 'README 만들어줘', 'README 다듬어줘', 'README 번역해줘', '.gitignore 만들어줘', 'LICENSE 추가해줘', '깃허브 배포', 'GitHub에 공유', '레포지토리 생성', 'git 초기화', '커밋하고 푸시', 'push to GitHub' 등. 새 프로젝트의 첫 업로드, 기존 레포 변경사항 push, 레포 생성부터 업로드까지 전체 과정, README/LICENSE/.gitignore 자동 생성 및 개선, README 한영 번역을 모두 지원한다. 사용자가 GitHub이나 git을 언급하거나, 프로젝트를 공유/배포/업로드하고 싶다고 말하면 이 스킬을 반드시 사용하라. 코드 저장소 관련 작업이면 이 스킬을 적극 활용하라."
+description: "GitHub 업로드 전 프로젝트를 정리·다듬을 때 사용하는 스킬. 트리거: 'GitHub 업로드 준비', '깃허브 올리기 전에 정리해줘', '깃허브에 올릴 수 있게 정리해줘', 'README 만들어줘', 'README 다듬어줘', 'README 번역해줘', '.gitignore 만들어줘', 'LICENSE 추가해줘', '깃허브 정리해줘', '업데이트 정리해줘', '변경사항 정리해줘', '릴리즈 준비해줘', 'Description 만들어줘' 등. 프로젝트를 분석하여 README/LICENSE/.gitignore를 자동 생성·개선·번역하고, 원본 소스와 함께 ZIP으로 패키징한다. 사용자가 직접 GitHub에 업로드할 수 있도록 파일을 다듬어주는 스킬이다. GitHub이나 git을 언급하거나, 프로젝트를 정리/준비하고 싶다고 말하면 이 스킬을 반드시 사용하라."
 license: MIT
 allowed-tools: bash_tool, create_file, str_replace, view, present_files
 ---
 
 # GitHub Upload Skill
 
-사용자의 프로젝트를 심층 분석하여 GitHub 업로드에 필요한 모든 파일을 자동으로 생성·개선·번역한 뒤, **원본 소스 파일 전체와 함께** ZIP 하나로 정리하여 다운로드를 제공하는 스킬이다. 사용자는 ZIP을 받아서 그대로 GitHub에 올리기만 하면 된다.
+사용자의 프로젝트를 심층 분석하여 GitHub 업로드에 필요한 모든 파일을 자동으로 생성·개선·번역한 뒤, **원본 소스 파일 전체와 함께** ZIP 하나로 정리하여 다운로드를 제공하는 스킬이다.
+
+**이 스킬의 본질**: GitHub에 직접 업로드하기 전에, 사용자가 작업한 프로젝트를 **다듬고 정리하는** 스킬이다. Git 명령어를 실행하는 것이 아니라, 프로젝트를 분석하고 필요한 파일을 생성/개선하여 "업로드만 하면 되는 상태"로 만들어 ZIP으로 제공한다.
+
+**지원하는 시나리오**:
+- **첫 업로드**: 새 프로젝트를 처음 GitHub에 올릴 때 → 전체 파일 생성 + ZIP
+- **업데이트/릴리즈**: 기존 GitHub 레포의 변경사항을 정리할 때 → 변경 파일만 개선 + CHANGELOG 업데이트
+- **개별 요청**: README만, .gitignore만, 번역만 등 특정 파일만 요청할 때
 
 모든 안내는 한국어로 하되, 기술 용어는 원문 그대로 표기하고 괄호 안에 쉬운 설명을 덧붙인다.
 
@@ -19,21 +26,25 @@ allowed-tools: bash_tool, create_file, str_replace, view, present_files
 사용자가 프로젝트 파일 제공 (업로드 또는 경로 지정)
     ↓
 [1] 프로젝트 심층 분석
-    타입 감지 → 소스 코드 분석 → 기존 파일 점검 → 민감 정보 스캔
+    타입 감지 → 소스 코드 분석 → 기존 파일 점검 → 첫 업로드 vs 업데이트 판별
     ↓
-    분석 결과 + 작업 계획을 사용자에게 보여주고 확인
+    분석 결과 + 작업 계획 + GitHub Description 제안 → 사용자 확인
     ↓
 [2] 파일 생성/개선
-    .gitignore → .env.example → README.md + README.ko.md → LICENSE → (선택) 고급 파일
+    .gitignore → .env.example → README.md(영문) + README.ko.md(한글) → LICENSE
+    → (업데이트 시) CHANGELOG.md → (선택) 고급 GitHub 파일
     ↓
 [3] ZIP 패키징
     원본 소스를 안전하게 복사(rsync) → 신규/수정 파일 덮어쓰기 → ZIP 생성
     ↓
 [4] 셀프 검증
-    ZIP 내용물 확인(unzip -l) → 체크리스트 10항목 검증 → 문제 시 자동 수정
+    ZIP 내용물 확인(unzip -l) → 체크리스트 15항목 검증 → 문제 시 자동 수정
     ↓
-[5] 결과 전달
-    검증 통과 → 다운로드 제공 + (요청 시) GitHub 업로드 방법 안내
+[5] PDF 생성
+    README 내용을 비개발자용 PDF 문서로 변환
+    ↓
+[6] 결과 전달
+    검증 통과 → ZIP + PDF 다운로드 제공 + GitHub 업로드 방법 안내
 ```
 
 ---
@@ -45,15 +56,15 @@ allowed-tools: bash_tool, create_file, str_replace, view, present_files
 3. **전문가 품질**: 생성되는 모든 문서는 숙련된 개발자가 직접 작성한 것처럼 보여야 한다.
 4. **자동 감지**: 사용자가 세부 지시를 하지 않아도, 프로젝트를 분석하여 누락된 파일을 찾아내고 한번에 처리한다.
 5. **ZIP 완결성**: ZIP 하나만 받으면 바로 GitHub에 올릴 수 있어야 한다. **원본 소스 전체 + 신규/수정 파일**을 반드시 모두 포함한다. 신규 파일만 따로 주는 것은 금지.
-6. **현재 연도 사용**: LICENSE 등에 연도를 넣을 때 반드시 오늘 날짜 기준의 현재 연도를 사용한다. package.json이나 기존 파일의 연도를 따르지 않는다.
-7. **사전 확인**: 작업 시작 전 분석 결과와 작업 계획을 먼저 보여주고, 사용자가 확인하면 실행한다. 단, "알아서 해줘" 식으로 위임하면 바로 실행한다.
+6. **현재 연도 사용**: LICENSE 등에 연도를 넣을 때 반드시 오늘 날짜 기준의 현재 연도를 사용한다.
+7. **사전 확인**: 작업 시작 전 분석 결과와 작업 계획을 먼저 보여주고, 사용자가 확인하면 실행한다. "알아서 해줘" 식으로 위임하면 바로 실행한다.
 8. **셀프 검증**: ZIP 생성 후 반드시 내용물을 검증한다. 검증 없이 사용자에게 전달하지 않는다.
+9. **영문 기본 원칙**: README.md는 반드시 영문으로 작성하고, README.ko.md를 동일한 내용의 한글판으로 작성한다. 영문이 GitHub 기본 표시 파일이다.
+10. **PDF 제공**: README 작성 후 동일한 내용으로 비개발자를 위한 PDF 파일을 함께 생성한다.
 
 ---
 
 ## [1] 프로젝트 심층 분석
-
-요청을 받으면 가장 먼저 프로젝트의 현재 상태를 깊이 파악한다.
 
 ### 1-1. 프로젝트 타입 감지
 
@@ -90,54 +101,126 @@ allowed-tools: bash_tool, create_file, str_replace, view, present_files
 | `discord.js` | Discord 봇 |
 | `telegraf`, `node-telegram-bot-api` | Telegram 봇 |
 
+**모노레포 감지 및 처리:**
+
+아래 구조가 발견되면 모노레포로 판단한다:
+
+| 감지 조건 | 모노레포 타입 |
+|---|---|
+| 루트에 `packages/` 또는 `apps/` 폴더 + 각 하위에 `package.json` | npm/yarn/pnpm 워크스페이스 |
+| 루트 `package.json`에 `"workspaces"` 필드 | npm/yarn 워크스페이스 |
+| `pnpm-workspace.yaml` 존재 | pnpm 워크스페이스 |
+| `lerna.json` 존재 | Lerna 모노레포 |
+| `nx.json` 존재 | Nx 모노레포 |
+| `turbo.json` 존재 | Turborepo |
+
+**모노레포 README 전략:**
+
+```
+루트 README.md (필수)
+  → 프로젝트 전체 설명, 패키지 목록, 공통 설치법, 아키텍처 개요
+  → 각 패키지로의 링크 포함
+
+packages/패키지A/README.md (선택, 사용자 요청 시)
+  → 해당 패키지만의 기능, 설치법, API
+```
+
+모노레포에서 **루트 README**에 반드시 포함할 추가 섹션:
+
+| 섹션 | 내용 |
+|---|---|
+| `## 📦 Packages` | 각 패키지명, 한 줄 설명, 경로를 테이블로 |
+| `## 🏗️ Architecture` | 패키지 간 의존 관계, 데이터 흐름 |
+| `## 🚀 Getting Started` | 루트에서 전체 설치: `npm install` (hoisting) 또는 `pnpm install` |
+
+**모노레포 .gitignore 추가 항목:**
+- 각 패키지의 `node_modules/`, `dist/`, `build/`
+- 루트 + 패키지 레벨 모두 `.env` 제외 확인
+
 ### 1-2. 소스 코드 심층 분석
 
-단순 타입 감지를 넘어, 실제 소스 코드를 읽어서 프로젝트의 기능과 구조를 파악한다.
+실제 소스 코드를 읽어서 프로젝트의 기능과 구조를 파악한다:
 
-**분석 대상:**
-
-1. **진입점 파일**: `src/index.ts`, `src/main.py`, `lib/main.dart`, `src/App.tsx` 등
-   - 프로젝트가 무엇을 하는지 파악 (서버? CLI? UI? API?)
-   - 주요 기능/모듈 식별
-
-2. **의존성 파일**:
-   - `package.json` → `name`, `version`, `description`, `scripts`, `dependencies`, `engines`
-   - `requirements.txt` → 주요 라이브러리와 버전
-   - `pubspec.yaml` → 프로젝트 설명, 의존성
-
-3. **스크립트/명령어**: `package.json`의 `scripts` 등에서 설치/실행/빌드 명령어 파악
-
-4. **디렉토리 구조**:
+1. **진입점 파일**: `src/index.ts`, `src/main.py`, `lib/main.dart`, `src/App.tsx` 등 → 프로젝트 목적 파악
+2. **의존성 파일**: `package.json`, `requirements.txt`, `pubspec.yaml` → 기술 스택, 버전, 스크립트
+3. **디렉토리 구조**:
    ```bash
-   find . -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/venv/*' -not -path '*/__pycache__/*' -not -path '*/dist/*' -not -path '*/build/*' | head -60
+   find . -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/venv/*' -not -path '*/__pycache__/*' -not -path '*/dist/*' | head -60
    ```
+4. **환경 변수**: `.env` 파일에서 키 이름만 추출 (값은 절대 포함하지 않음)
+5. **설정 파일**: `tsconfig.json`, `vite.config.ts`, `docker-compose.yml` 등에서 추가 기술 판별
 
-5. **환경 변수**: `.env` 파일이 있으면 키 이름만 추출 (값은 절대 포함하지 않음)
+### 1-3. 첫 업로드 vs 업데이트 판별
 
-6. **설정 파일**: `tsconfig.json`, `vite.config.ts`, `next.config.js`, `tailwind.config.js`, `docker-compose.yml` 등에서 추가 기술 판별
+아래 **우선순위**대로 판단한다. 1번이 가장 확실하고, 아래로 갈수록 보조 근거이다.
 
-### 1-3. 기존 파일 점검
+**우선순위 1: 사용자 발화 (가장 확실)**
 
-아래 파일들의 존재 여부를 확인하고 상태를 진단한다:
+| 사용자가 이렇게 말하면 | → 판정 |
+|---|---|
+| "처음 올리는 거야", "깃허브에 올릴 수 있게 정리해줘", "깃허브 정리해줘" | 첫 업로드 |
+| "업데이트", "변경사항 정리", "릴리즈 준비", "수정한 거 올려", "버전 올려" | 업데이트 |
+
+사용자의 말로 명확히 구분되면 바로 해당 모드로 진입한다.
+
+**우선순위 2: 파일 기반 자동 판별 (사용자 발화가 모호할 때)**
+
+아래 기준으로 점수를 매긴다:
+
+| 조건 | 점수 |
+|---|---|
+| `.git/` 폴더 존재 | +3 (업데이트) |
+| `CHANGELOG.md` 존재 | +2 (업데이트) |
+| `README.md` + `.gitignore` + `LICENSE` 모두 존재하고 품질 양호 | +2 (업데이트) |
+| `README.md`에 버전 번호(`v1.0`, `v2.1` 등) 명시 | +1 (업데이트) |
+| `README.md` 없음 또는 빈약 | +2 (첫 업로드) |
+| `.gitignore` 없음 | +1 (첫 업로드) |
+| `LICENSE` 없음 | +1 (첫 업로드) |
+
+- 업데이트 점수 ≥ 3 → **업데이트 모드**
+- 첫 업로드 점수 ≥ 3 → **첫 업로드 모드**
+- 양쪽 점수 비슷하거나 판별 불가 → **사용자에게 질문**
+
+**우선순위 3: 사용자에게 질문 (판별 불가 시)**
+
+```
+💬 프로젝트 상태를 확인하고 싶습니다:
+  A) 이 프로젝트를 처음 GitHub에 올리는 건가요? → 전체 파일 생성 + ZIP
+  B) 이미 GitHub에 올라가 있고, 업데이트하려는 건가요? → 변경 파일 개선 + CHANGELOG
+→ A 또는 B를 알려주세요!
+```
+
+**각 모드별 동작:**
+
+| 동작 | 첫 업로드 | 업데이트 |
+|---|---|---|
+| README 생성 | 전체 새로 작성 | 기존 내용 보존 + 개선 |
+| .gitignore | 새로 생성 | 누락 항목만 보완 |
+| LICENSE | 새로 생성 | 연도/저작자 점검만 |
+| CHANGELOG | 생성 안 함 | 최신 항목 추가 제안 |
+| ZIP 내용 | 원본 전체 + 신규 파일 | 원본 전체 + 수정 파일 |
+| 완료 메시지 | "GitHub에 업로드하면 끝!" | "변경 파일을 커밋하면 끝!" |
+
+### 1-4. 기존 파일 점검
 
 | 파일 | 있으면 | 없으면 |
 |---|---|---|
-| `README.md` | 품질 진단 → 다듬기 | 새로 생성 |
+| `README.md` | 품질 진단 → 다듬기 | 새로 생성 (영문) |
 | `README.ko.md` | 영문과 동기화 확인 | 한글판 생성 |
 | `.gitignore` | 누락 항목 점검 → 보완 | 프로젝트 타입에 맞게 생성 |
 | `.env` | 키 추출 → `.env.example` 생성 | - |
-| `.env.example` | 내용 확인 | `.env`가 있으면 생성 |
 | `LICENSE` | 연도/저작자 확인 | 라이선스 선택 후 생성 |
+| `CHANGELOG.md` | 최신 항목 확인 | (업데이트 모드에서) 생성 제안 |
 
-**README 파일명 비표준 감지**: GitHub 표준은 `README.md`(영문) + `README.ko.md`(한글). 비표준을 발견하면 표준으로 변경 제안:
+**README 파일명 비표준 감지**: GitHub 표준 = `README.md`(영문) + `README.ko.md`(한글)
 
 | 발견된 파일명 | 표준 변환 |
 |---|---|
-| `README.md`가 한글이고 `README_EN.md`가 영문 | `README.md`(한글) → `README.ko.md`, `README_EN.md` → `README.md` |
+| `README.md`가 한글이고 `README_EN.md`가 영문 | 한글 → `README.ko.md`, 영문 → `README.md` |
 | `README-en.md`, `README_EN.md`, `README.en.md` | → `README.md` |
 | `README-ko.md`, `README_KR.md`, `README.kr.md` | → `README.ko.md` |
 
-### 1-4. README 품질 진단
+### 1-5. README 품질 진단
 
 기존 README가 있으면 아래 기준으로 품질을 진단한다:
 
@@ -147,39 +230,233 @@ allowed-tools: bash_tool, create_file, str_replace, view, present_files
 | 기술 스택 | 버전까지 정확히 명시 | 일부만 나열 | 없음 |
 | 설치/실행법 | 복붙 가능한 명령어 | 명령어 일부만 | 없음 |
 | 프로젝트 구조 | 주요 파일에 설명 포함 | 구조만 있고 설명 없음 | 없음 |
+| 작동 방식 설명 | 아키텍처/플로우 설명 | 간략 언급만 | 없음 |
+| 문제 해결 안내 | FAQ/Troubleshooting 포함 | 간략 메모만 | 없음 |
+| 보안 안내 | 민감 정보 관련 주의사항 | 부분적 언급 | 없음 |
 | 라이선스 | 명시되어 있음 | 본문에만 언급 | 없음 |
-| 마크다운 품질 | 깔끔한 포맷 | 일부 깨진 문법 | 읽기 어려움 |
 | 뱃지 | 라이선스+핵심 기술 | 라이선스만 | 없음 |
 
-### 1-5. 작업 계획 제시
+### 1-6. GitHub Description 생성
 
-분석 결과를 사용자에게 보고하고, 무엇을 할 것인지 명확하게 제시한다. 새로 생성하는 파일은 왜 필요한지 한 줄 설명을 반드시 붙인다.
+프로젝트 분석 결과를 바탕으로 GitHub 레포지토리의 **Description** 필드에 넣을 한 줄 요약을 생성한다.
+
+**작성 규칙:**
+- 영문 기준 80자 이내, 한글 기준 40자 이내
+- 프로젝트가 "무엇"을 하는지 한 문장으로
+- 핵심 기술이나 차별점 1개를 포함
+- 이모지 1개를 앞에 배치 (선택)
+
+**예시:**
+```
+영문: 🧠 MCP server for collaborative AI memory with cross-session persistence
+한글: 🧠 세션 간 영속적 AI 협업 메모리를 위한 MCP 서버
+```
+
+### 1-6-1. GitHub Topics 추천
+
+Description과 함께, 레포지토리의 **Topics** (태그)도 추천한다. Topics는 GitHub 검색과 탐색에서 프로젝트를 발견하기 쉽게 만든다.
+
+**추천 규칙:**
+- 5~10개 추천 (너무 적으면 검색 노출 낮음, 너무 많으면 스팸)
+- 소문자, 하이픈 구분 (GitHub 규칙: `react-native`, `machine-learning`)
+- 일반→구체 순서로 배치
+
+**Topics 구성 공식:**
+
+| 순서 | 카테고리 | 예시 |
+|---|---|---|
+| 1 | 프로젝트 타입 | `mcp-server`, `cli-tool`, `web-app`, `discord-bot` |
+| 2 | 주요 언어 | `typescript`, `python`, `dart`, `rust` |
+| 3 | 핵심 프레임워크 | `react`, `nextjs`, `express`, `flutter` |
+| 4 | 도메인/용도 | `ai`, `automation`, `developer-tools`, `education` |
+| 5 | 기술 키워드 | `openai`, `langchain`, `supabase`, `docker` |
+| 6 (선택) | 커뮤니티 태그 | `hacktoberfest`, `good-first-issue` |
+
+**예시:**
+```
+프로젝트: MCP 메모리 서버 (TypeScript)
+추천 Topics: mcp-server, typescript, ai-memory, model-context-protocol, 
+            claude, anthropic, nodejs, developer-tools
+```
+
+Topics는 작업 계획 보고 시 Description과 함께 제안한다.
+
+분석 결과를 사용자에게 보고한다. 새로 생성하는 파일은 왜 필요한지 한 줄 설명을 반드시 붙인다.
 
 ```
 📊 프로젝트 분석 결과
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 프로젝트 타입: Node.js + TypeScript (MCP Server)
-주요 의존성:  @modelcontextprotocol/sdk, zod, express
+모드:         첫 업로드 (또는: 업데이트)
+주요 의존성:  @modelcontextprotocol/sdk, zod
 스크립트:     build, start, dev
-파일 수:      12개 (소스 3, 설정 4, 문서 3, 기타 2)
+파일 수:      12개
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💬 GitHub Description 제안:
+  EN: 🧠 MCP server for collaborative AI memory
+  KO: 🧠 AI 협업 메모리를 위한 MCP 서버
+🏷️ Topics 추천:
+  mcp-server, typescript, ai-memory, model-context-protocol, claude, nodejs
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📝 작업 계획:
   [생성] .gitignore
-    → node_modules(수천 개 패키지), dist(빌드물), .env(API 키) 등이
-      GitHub에 올라가는 것을 방지
-  [생성] .env.example
-    → 필요한 환경 변수를 문서화 (실제 값은 제외)
-  [생성] README.md (영문)
-  [생성] README.ko.md (한글)
+    → node_modules, dist, .env 등이 GitHub에 올라가는 것을 방지
+  [생성] README.md (영문) + README.ko.md (한글)
+    → 프로젝트 설명, 설치법, 사용법 등 전체 문서
+  [생성] README.pdf (비개발자용)
+    → README 동일 내용의 PDF 문서
   [생성] LICENSE (MIT)
     → 없으면 다른 사람이 코드를 합법적으로 사용할 수 없음
   [유지] src/index.ts, package.json, tsconfig.json ...
-    → 원본 소스 그대로 ZIP에 포함
   [제외] node_modules/, .env, dist/
-    → 보안/용량 문제로 ZIP에서 제외
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 → 진행할까요?
 ```
+
+### 1-8. 업데이트 모드 상세 절차
+
+첫 업로드와 달리, 업데이트 모드에서는 **기존 것을 최대한 보존**하면서 변경사항만 반영한다. 아래 절차를 순서대로 따른다.
+
+#### A) 변경 범위 파악
+
+사용자에게 변경 내용을 확인한다. 아래 3가지 방법 중 정보가 많은 순으로 활용:
+
+| 우선순위 | 방법 | 활용 |
+|---|---|---|
+| 1 | 사용자가 변경 내용을 직접 설명 | 가장 정확. 그대로 반영 |
+| 2 | 이전 버전 파일과 현재 파일을 모두 제공 | `diff`로 변경점 자동 추출 |
+| 3 | 사용자가 "알아서 분석해" 라고 위임 | 코드 분석으로 새 기능/변경 추론 |
+
+```bash
+# 방법 2: diff가 가능한 경우 (이전 README와 현재 소스 비교)
+diff --unified=3 이전README.md 현재README.md | head -100
+```
+
+#### B) 기존 README 업데이트 절차
+
+**절대 규칙: 기존 README의 모든 정보를 유지한 채 변경사항만 반영한다.**
+
+```
+1. 기존 README.md 전체를 읽고 현재 내용을 완전히 파악
+2. 변경 대상 섹션 식별:
+   - Features에 새 기능 추가? → 기존 목록 뒤에 추가 (기존 항목 수정 금지)
+   - Tech Stack 변경? → 해당 행만 수정/추가
+   - Installation 명령어 변경? → 해당 코드블록만 수정
+   - 새 섹션 필요? → 적절한 위치에 삽입
+3. 수정 전/후 비교를 사용자에게 보여주기:
+   
+   📝 README.md 변경 사항:
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   [Features] 기존 5개 → 7개 (2개 추가)
+     + ✨ 새 기능: 실시간 동기화
+     + ✨ 새 기능: 다크 모드 지원
+   [Tech Stack] Express 4.x → Express 5.x (버전 업)
+   [나머지] 변경 없음
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   
+4. 사용자 확인 후 적용
+5. README.ko.md도 동일하게 반영 (번역 동기화)
+```
+
+#### C) CHANGELOG 병합 절차
+
+기존 CHANGELOG.md가 있는 경우:
+
+```
+1. 기존 CHANGELOG.md를 읽어 마지막 버전 번호 확인
+   (예: 마지막이 [1.2.0]이면 새 버전은 [1.3.0] 또는 [2.0.0])
+2. 새 버전 항목을 [Unreleased] 아래 또는 [Unreleased]를 새 버전으로 교체
+3. 기존 항목은 절대 수정하지 않음
+4. 삽입 위치: 항상 기존 버전 목록의 최상단
+
+   기존 파일:
+   ## [Unreleased]
+   ## [1.2.0] - 2026-01-15
+   ...
+
+   수정 후:
+   ## [Unreleased]
+   ## [1.3.0] - 2026-02-28    ← 새로 삽입
+   ### Added
+   - 새 기능 설명
+   ## [1.2.0] - 2026-01-15    ← 기존 유지
+   ...
+```
+
+기존 CHANGELOG.md가 없는 경우:
+- 사용자에게 생성을 제안: "CHANGELOG.md를 만들까요?"
+- 수락하면 [2-5. 릴리즈 문서] 절차대로 생성
+- 거절하면 건너뛰기
+
+#### D) 업데이트 모드의 ZIP 패키징
+
+첫 업로드와 동일하게 **원본 소스 전체 + 수정 파일**을 ZIP에 포함한다. 차이점:
+
+| 항목 | 첫 업로드 | 업데이트 |
+|---|---|---|
+| 소스 파일 | 전체 포함 | 전체 포함 (동일) |
+| README.md | 새로 생성한 것 | 기존 + 수정된 것 |
+| CHANGELOG.md | 미포함 | 새 항목 추가된 것 |
+| 릴리즈 노트 | 미포함 | ZIP 미포함, 대화로 별도 전달 |
+| package.json 등 | 원본 그대로 | 버전 번호 업데이트 제안 (사용자 확인 후) |
+
+#### E) 버전 파일 업데이트 제안
+
+릴리즈 모드에서 버전 번호가 포함된 파일을 발견하면, 새 버전으로 업데이트를 **제안**한다 (자동 수정 아님):
+
+```
+📋 버전 번호 업데이트 제안:
+  package.json:   "version": "1.2.0" → "1.3.0"  (수정할까요?)
+  pyproject.toml: version = "1.2.0" → "1.3.0"   (수정할까요?)
+```
+
+사용자가 수락하면 해당 파일을 수정하고 ZIP에 반영한다.
+
+### 1-9. 개별 요청 모드 (경량 흐름)
+
+사용자가 전체 정리가 아닌 **특정 파일만** 요청하면 6단계 전체를 따르지 않고, 아래 경량 흐름을 사용한다.
+
+**개별 요청 감지 기준:**
+
+| 사용자 발화 | 요청 타입 | 경량 흐름 |
+|---|---|---|
+| "README 만들어줘", "README 다듬어줘" | README 단독 | 분석→README 생성→전달 |
+| "README 번역해줘" | 번역 단독 | 기존 README 읽기→번역→전달 |
+| ".gitignore 만들어줘" | gitignore 단독 | 타입 감지→gitignore 생성→전달 |
+| "LICENSE 추가해줘" | LICENSE 단독 | 라이선스 선택→생성→전달 |
+| "Description 만들어줘" | Description 단독 | 분석→Description 생성→대화로 전달 |
+| ".env.example 만들어줘" | env 단독 | .env/코드 스캔→생성→전달 |
+
+**경량 흐름 규칙:**
+
+```
+[분석] 요청된 파일에 필요한 최소한의 프로젝트 분석만 수행
+  ↓
+[생성] 해당 파일만 생성/수정
+  ↓
+[전달] 파일 직접 전달 (ZIP 패키징 생략, PDF 생략)
+```
+
+**생략되는 단계:**
+- [3] ZIP 패키징 → 생략. 파일을 직접 전달 (create_file → present_files)
+- [4] 셀프 검증 → 해당 파일에 대한 최소 검증만 (ZIP 검증 불필요)
+- [5] PDF 생성 → 생략 (사용자가 별도 요청하면 생성)
+- [6] 완료 메시지 → 간소화. GitHub 업로드 안내 생략
+
+**예외: "전체 정리" 키워드 감지 시 전체 흐름으로 전환**
+
+아래 키워드가 포함되면 개별이 아닌 전체 흐름:
+- "정리해줘", "업로드 준비", "깃허브에 올릴 수 있게", "전체", "한번에"
+
+**개별 요청에서 추가 발견 시 제안:**
+
+개별 파일만 요청했더라도, 분석 중 심각한 누락을 발견하면 제안한다:
+```
+README를 생성했습니다! 📝
+참고로, 이 프로젝트에 .gitignore가 없어서 node_modules가 
+GitHub에 올라갈 수 있어요. .gitignore도 만들어드릴까요?
+```
+단, 사용자가 거절하면 강요하지 않는다.
 
 ---
 
@@ -217,148 +494,426 @@ desktop.ini
 | Go | `vendor/` (선택), 바이너리 파일 |
 | Java/Kotlin | `build/`, `.gradle/`, `*.class`, `*.jar` (빌드 결과) |
 | C# / .NET | `bin/`, `obj/`, `*.user`, `*.suo` |
-| Claude Skill | `*.log`, `.cache/`, `*.tmp` |
 
-기존 `.gitignore`가 있으면 기존 항목을 모두 유지하면서 누락된 항목만 카테고리별 주석과 함께 추가한다.
+기존 `.gitignore`가 있으면 기존 항목을 모두 유지하면서 누락된 항목만 추가한다.
 
-**런타임 데이터 폴더 처리**: `data/`, `logs/`, `tmp/`, `uploads/` 같은 런타임 폴더가 있으면:
-- 폴더 내 데이터 파일을 `.gitignore`에 추가 (예: `data/*.json`, `logs/*.log`)
-- 빈 폴더를 GitHub에 유지하기 위해 `.gitkeep` 파일 생성
+**런타임 데이터 폴더 처리**: `data/`, `logs/`, `tmp/` 같은 폴더가 있으면:
+- 데이터 파일을 `.gitignore`에 추가 (예: `data/*.json`, `logs/*.log`)
+- `.gitkeep` 파일 생성으로 빈 폴더 유지
 
-### 2-2. .env.example (환경 변수 문서화)
+### 2-2. .env.example
 
-프로젝트에 `.env` 파일이 있으면, 키 이름만 추출하여 `.env.example`을 생성한다.
+`.env` 파일이 있으면 키 이름만 추출하여 생성:
+- API 키, 비밀번호, 토큰 → `your_xxx_here` 플레이스홀더
+- 포트, 환경 모드 등 → 기본값 유지
+- 각 변수 위에 용도 설명 주석 + 키 발급 URL
 
-**변환 규칙:**
-```
-# .env (원본 - 절대 공개 금지)
-DATABASE_URL=postgresql://user:password@localhost:5432/mydb
-OPENAI_API_KEY=sk-abc123...
-PORT=3000
+`.env`가 없으면 코드에서 `process.env.XXX` / `os.environ['XXX']` 패턴 스캔하여 생성.
 
-# .env.example (생성할 파일)
-# Database connection string
-DATABASE_URL=postgresql://user:password@localhost:5432/dbname
-# OpenAI API key (https://platform.openai.com/api-keys)
-OPENAI_API_KEY=your_openai_api_key_here
-# Server port
-PORT=3000
-```
+**주요 API 키 발급 URL 매핑** (변수명 패턴으로 매칭):
 
-- API 키, 비밀번호, 토큰 → `your_xxx_here` 플레이스홀더로 교체
-- 포트, 환경 모드 등 비밀이 아닌 값 → 기본값 유지
-- 각 변수 위에 용도 설명 주석 + 키 발급 URL (파악 가능한 경우)
-
-`.env`가 없고 코드에서 `process.env.XXX` 또는 `os.environ['XXX']` 패턴이 발견되면, 그 변수들로 `.env.example`을 생성한다.
-
-### 2-3. README.md
-
-#### A) README가 없는 경우 → 새로 생성
-
-[1]에서 수집한 정보를 바탕으로 작성한다. 기본 구조:
-
-```markdown
-# 프로젝트명
-
-> 한 줄 설명
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-## 📋 Overview
-## ✨ Features
-## 🛠️ Tech Stack (테이블 형식)
-## 🚀 Getting Started (Prerequisites → Installation → Environment Setup → Usage)
-## 📁 Project Structure
-## 📄 License
-```
-
-**프로젝트 타입별 특화 섹션** — 해당하는 경우 추가:
-
-| 프로젝트 타입 | 추가 섹션 | 내용 |
+| 변수명 패턴 | 서비스 | 발급 URL |
 |---|---|---|
-| MCP 서버 | `## ⚙️ MCP Configuration` | `claude_desktop_config.json` 설정 예시, Available Tools 테이블 |
-| REST API 서버 | `## 🔌 API Endpoints` | Method, Path, Description 테이블 |
+| `OPENAI_API_KEY` | OpenAI | https://platform.openai.com/api-keys |
+| `ANTHROPIC_API_KEY` | Anthropic | https://console.anthropic.com/settings/keys |
+| `GOOGLE_API_KEY`, `GEMINI_API_KEY` | Google AI | https://aistudio.google.com/apikey |
+| `GITHUB_TOKEN`, `GITHUB_PAT` | GitHub | https://github.com/settings/tokens |
+| `DISCORD_TOKEN`, `DISCORD_BOT_TOKEN` | Discord | https://discord.com/developers/applications |
+| `TELEGRAM_BOT_TOKEN` | Telegram | https://t.me/BotFather |
+| `SLACK_BOT_TOKEN`, `SLACK_WEBHOOK` | Slack | https://api.slack.com/apps |
+| `AWS_ACCESS_KEY_ID` | AWS | https://console.aws.amazon.com/iam |
+| `FIREBASE_*`, `GOOGLE_APPLICATION_CREDENTIALS` | Firebase/GCP | https://console.firebase.google.com |
+| `SUPABASE_URL`, `SUPABASE_KEY` | Supabase | https://supabase.com/dashboard |
+| `MONGODB_URI`, `MONGO_URL` | MongoDB Atlas | https://cloud.mongodb.com |
+| `DATABASE_URL` (postgres) | PostgreSQL | (호스팅 서비스에 따라 다름) |
+| `REDIS_URL` | Redis | (호스팅 서비스에 따라 다름) |
+| `STRIPE_SECRET_KEY` | Stripe | https://dashboard.stripe.com/apikeys |
+| `SENDGRID_API_KEY` | SendGrid | https://app.sendgrid.com/settings/api_keys |
+| `TWILIO_*` | Twilio | https://console.twilio.com |
+| `REPLICATE_API_TOKEN` | Replicate | https://replicate.com/account/api-tokens |
+| `HF_TOKEN`, `HUGGINGFACE_*` | Hugging Face | https://huggingface.co/settings/tokens |
+| `PINECONE_API_KEY` | Pinecone | https://app.pinecone.io |
+| `VERCEL_TOKEN` | Vercel | https://vercel.com/account/tokens |
+
+위 테이블에 없는 키는 변수명과 코드 컨텍스트로 추론하여 주석에 서비스명만 표기한다.
+
+**.env.example 생성 예시:**
+```bash
+# OpenAI API Key (https://platform.openai.com/api-keys)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Server Port
+PORT=3000
+
+# Environment (development | production)
+NODE_ENV=development
+
+# MongoDB Connection (https://cloud.mongodb.com)
+MONGODB_URI=your_mongodb_connection_string_here
+```
+
+### 2-3. README.md (영문) + README.ko.md (한글)
+
+⚠️ **핵심 규칙**:
+- `README.md`는 반드시 **영문**으로 작성 (GitHub 기본 표시 파일)
+- `README.ko.md`는 README.md와 **동일한 내용**을 한글로 작성
+- 두 파일의 섹션 구조, 코드블록, 이미지, 뱃지, 링크는 100% 동기화
+- 각 파일 상단에 언어 전환 링크: `🌏 [한국어](README.ko.md) | [English](README.md)`
+
+#### A) README 필수 섹션 (반드시 모두 포함)
+
+아래 섹션을 **순서대로** 반드시 포함한다. 프로젝트에 해당하지 않는 경우에도 "N/A" 대신 관련 내용을 간략하게 적는다.
+
+⚠️ **주의**: 아래는 각 섹션의 **명세**이다. 코드블록은 실제 README에서 정상적으로 열고 닫아야 한다. 백슬래시로 코드펜스를 이스케이프하는 것은 절대 금지.
+
+**섹션 순서 + 내용 명세:**
+
+| # | 섹션 | 내용 규칙 |
+|---|---|---|
+| 0 | 언어 전환 링크 | 파일 최상단에 `🌏 [한국어](README.ko.md) \| [English](README.md)` |
+| 1 | `# 프로젝트명` | H1 제목. 프로젝트명만. |
+| 2 | 한 줄 설명 | `> 인용구` 형태. GitHub Description과 동일하거나 확장 |
+| 3 | 뱃지 | 라이선스 뱃지 필수. 해당 기술 뱃지 추가 |
+| 4 | `## 📋 Overview` | 무엇이고 어떤 문제를 해결하는지 2-3문장. 핵심 가치/차별점 |
+| 5 | `## ✨ Features` | 불릿 리스트. **기능명**: 설명 형식. 실제 코드에서 파악한 것만 |
+| 6 | `## 🛠️ Tech Stack` | 테이블(분류, 기술). 버전은 설정 파일의 실제 값 |
+| 7 | `## 📦 Prerequisites` | 불릿 리스트. 필수 소프트웨어와 버전 |
+| 8 | `## 🚀 Installation` | bash 코드블록으로 clone → cd → install 명령어 |
+| 8-1 | `### Environment Setup` | .env.example이 있을 때만. bash 코드블록으로 cp + 안내 |
+| 9 | `## 💻 Usage` | bash 코드블록으로 실행 명령어. scripts에서 확인된 것만 |
+| 10 | `## ⚙️ How It Works` | 작동 방식 설명. 입력→처리→출력 흐름. 가능하면 다이어그램 |
+| 11 | `## 📁 Project Structure` | 코드블록으로 트리 구조. 주요 파일에 `# 설명` 주석 |
+| 12 | `## 🔧 Troubleshooting` | 테이블(증상, 원인, 해결법). 프로젝트 타입별 일반 에러 3개+ |
+| 13 | `## 🔒 Security` | .gitignore에 포함된 민감 파일 목록, 환경 변수 관리법 |
+| 14 | `## 🤝 Contributing` | Fork→Branch→Commit→Push→PR 5단계 |
+| 15 | `## 📄 License` | 라이선스 종류 + LICENSE 파일 링크 |
+
+**코드블록 작성 규칙** (이스케이프 관련):
+
+README를 생성할 때 코드블록은 반드시 아래처럼 **정상 마크다운 문법**으로 작성한다:
+
+````
+```bash
+git clone https://github.com/username/project.git
+cd project
+npm install
+```
+````
+
+절대 하지 말아야 할 것:
+- 백슬래시 + 코드펜스 조합 (예: 역슬래시를 코드펜스 앞에 붙이는 것) 금지
+- 코드블록 안에 코드블록을 중첩하지 않는다
+- SKILL.md의 명세를 복사하지 말고, 프로젝트 분석 결과로 실제 내용을 채운다
+
+**Troubleshooting 섹션 예시** (프로젝트 타입별):
+
+| 프로젝트 타입 | 포함할 일반 에러 |
+|---|---|
+| Node.js | MODULE_NOT_FOUND, 포트 충돌, 빌드 실패 |
+| Python | ModuleNotFoundError, 가상환경 미활성, 버전 불일치 |
+| Flutter | SDK version mismatch, Gradle 에러, 플랫폼 미설정 |
+| MCP 서버 | 연결 실패, 인증 에러, 도구 미발견 |
+
+**Security 섹션 필수 항목:**
+- `.gitignore`에 포함된 민감 파일 목록
+- 환경 변수 관리 방법 (`.env` → `.env.example`)
+- 보안 취약점 발견 시 연락처/절차 (해당 시)
+
+**Project Structure 트리 생성 규칙:**
+
+트리 구조는 프로젝트의 핵심 파일만 보여주는 것이 목적이다. 모든 파일을 나열하면 오히려 가독성이 떨어진다.
+
+| 규칙 | 기준 |
+|---|---|
+| 최대 깊이 | 3단계 (루트 포함). 4단계 이상은 `...` 으로 생략 |
+| 최대 줄 수 | 15~25줄. 파일이 많으면 주요 파일만 선별 |
+| 주석 필수 | 모든 파일/폴더에 `# 한 줄 설명` 주석. 빈 주석 금지 |
+| 정렬 순서 | 폴더 먼저 → 파일. 알파벳순 |
+
+**포함 우선순위** (위→아래 순서로 중요):
+
+| 우선순위 | 파일/폴더 | 이유 |
+|---|---|---|
+| 1 (필수) | 진입점 (`src/index.ts`, `main.py` 등) | 프로젝트 시작점 |
+| 2 (필수) | 설정 파일 (`package.json`, `tsconfig.json`) | 빌드/실행 방법 |
+| 3 (필수) | 핵심 소스 폴더 (`src/`, `lib/`, `app/`) | 코드 구조 |
+| 4 (권장) | 테스트 (`tests/`, `__tests__/`) | 테스트 존재 표시 |
+| 5 (권장) | 문서 (`README.md`, `LICENSE`, `.env.example`) | 문서 파일 |
+| 6 (선택) | 배포/CI (`.github/`, `Dockerfile`) | 있으면 포함 |
+
+**제외 대상** (트리에 표시하지 않음):
+- `node_modules/`, `.git/`, `dist/`, `build/`, `__pycache__/`, `.venv/`
+- IDE 설정 (`.idea/`, `.vscode/` — 단, `.vscode/settings.json`이 프로젝트에 필수면 포함)
+- 자동 생성 파일 (`*.lock` — 단, `package-lock.json`은 앱이면 포함)
+
+**트리 생성 명령어** (실제 구조 파악용):
+```bash
+find . -not -path '*/node_modules/*' -not -path '*/.git/*' \
+  -not -path '*/dist/*' -not -path '*/__pycache__/*' \
+  -not -path '*/.venv/*' -not -path '*/build/*' \
+  | sort | head -40
+```
+
+#### B) 프로젝트 타입별 특화 섹션
+
+해당하는 경우 필수 섹션 사이에 추가:
+
+| 프로젝트 타입 | 추가 섹션 | 위치 (Usage 뒤) |
+|---|---|---|
+| MCP 서버 | `## ⚙️ MCP Configuration` | claude_desktop_config.json 설정, Available Tools 테이블 |
+| REST API | `## 🔌 API Endpoints` | Method, Path, Description 테이블 |
 | CLI 도구 | `## 💻 Commands` | 명령어 목록과 옵션 |
 | Discord/Telegram 봇 | `## 🤖 Bot Commands` | 봇 명령어 목록 |
 | Flutter 앱 | `## 📱 Screenshots` | 스크린샷 placeholder |
-| React/Vue 웹앱 | `## 🖥️ Demo` | 데모 링크 placeholder |
-| 라이브러리/패키지 | `## 📦 Installation` + `## 🔧 API Reference` | npm/pip 설치법, 주요 API 사용 예시 |
+| 웹앱 | `## 🖥️ Demo` | 데모 링크 placeholder |
+| 라이브러리/패키지 | `## 📦 API Reference` | 주요 API 사용 예시 |
 | Docker 포함 | `## 🐳 Docker` | docker-compose 사용법 |
+| Claude Skill | `## 🎯 Trigger Keywords` | 트리거 키워드 테이블 (한국어/English) |
 
-**MCP 서버 특화 README 예시:**
+**Claude Skill인 경우 반드시 추가:**
 ```markdown
-## ⚙️ MCP Configuration
-
-### Claude Desktop
-`claude_desktop_config.json`에 추가:
-\```json
-{
-  "mcpServers": {
-    "프로젝트명": {
-      "command": "node",
-      "args": ["path/to/dist/index.js"]
-    }
-  }
-}
-\```
-
-### Available Tools
-| Tool | Description |
+## 🎯 Trigger Keywords
+| 한국어 | English |
 |---|---|
-| `tool_name` | 도구 설명 |
+| 키워드1 | Keyword1 |
+| 키워드2 | Keyword2 |
 ```
 
-**작성 규칙:**
-- **뱃지**: 라이선스 뱃지 항상 포함. Node.js/Python/TypeScript 뱃지는 해당 시만.
-- **Features**: 실제 코드에서 확인된 기능만. 추측 금지.
-- **Tech Stack**: 테이블 형식. 버전은 설정 파일의 실제 버전.
-- **Getting Started**: `scripts`에서 확인된 명령어만.
-- **Project Structure**: 실제 디렉토리 확인 후 주요 파일에 한 줄 설명.
-- **이모지**: 섹션 제목(##)에만 사용.
-- **.env.example이 있으면**: Environment Setup 섹션 반드시 포함.
+#### C) 강력 추천 추가 섹션 (프로젝트 성격에 따라)
 
-#### B) 기존 README 다듬기
+| 섹션 | 추천 대상 | 내용 |
+|---|---|---|
+| `## ⚡ Quick Start` | 설치 과정이 복잡한 프로젝트 | 3줄 이내 최소 실행법 |
+| `## 🌐 Supported Languages` | 다국어 지원 프로젝트 | 지원 언어 목록 |
+| `## 📈 Changelog` | 업데이트가 잦은 프로젝트 | 최신 변경사항 요약 + CHANGELOG.md 링크 |
+| `## ❓ FAQ` | 사용법이 복잡한 프로젝트 | 자주 묻는 질문 3-5개 |
+| `## 🙏 Acknowledgments` | 외부 리소스 사용 프로젝트 | 참고한 프로젝트, 라이브러리, 영감 |
+| `## 🗺️ Roadmap` | 오픈소스 프로젝트 | 향후 계획 (사용자가 내용 제공 시만) |
+| `## 📞 Contact` | 공개 프로젝트 | 연락처, 이슈 트래커 링크 |
+| `## ⭐ Show Your Support` | 오픈소스/공개 프로젝트 | Star/Fork 유도 문구 (하단 배치) |
 
-**절대 규칙: 기존 내용의 정보·의미를 100% 보존하면서** 품질을 높인다:
-- 구조 정리, 문장 다듬기, 누락 섹션 추가, 특화 섹션 추가, 뱃지 추가, 마크다운 문법 교정, 일관성 확보
-- 기존 정보 삭제 금지, 이미지 경로·외부 링크·기존 뱃지 유지
+**Star/Fork 유도 문구 작성 규칙:**
 
-### 2-4. README 한↔영 번역
+오픈소스 프로젝트에서 사용자가 원하면, README 하단(License 바로 위)에 Star 유도 섹션을 추가한다.
 
-**번역 절대 규칙:**
-1. **원본 내용 100% 보존**: 정보 누락·임의 추가 금지
-2. **기술 용어**: 고유명사·명령어·코드블록 변경 금지. 한글판은 영문 병기 (예: "의존성(dependencies)")
-3. **파일명**: 영문 `README.md` + 한글 `README.ko.md`, 각 파일 상단에 언어 전환 링크: `🌏 [한국어](README.ko.md) | [English](README.md)`
-4. **구조 동기화**: 섹션 순서, 코드블록, 이미지, 뱃지, 링크 모두 동일
+| 스타일 | 예시 (영문) | 예시 (한글) |
+|---|---|---|
+| 간결형 | `Give a ⭐ if this project helped you!` | `도움이 되셨다면 ⭐를 눌러주세요!` |
+| 설명형 | `If you found this useful, consider giving it a star. It helps others discover this project.` | `유용하셨다면 Star를 눌러주세요. 더 많은 사람이 이 프로젝트를 발견할 수 있게 됩니다.` |
 
-### 2-5. LICENSE 파일
+**주의:**
+- 사용자가 오픈소스/공개 배포를 의도하지 않는 프로젝트에는 넣지 않는다
+- 강압적이거나 과도한 문구 금지 ("Star를 안 누르면..." 등)
+- 개인 프로젝트, 학습용 프로젝트에는 제안하지 않는다
+
+#### D) README 작성 규칙
+
+- **뱃지**: 라이선스 뱃지 항상 포함. 해당 시: Node.js/Python/TypeScript 뱃지 추가
+- **Features**: 실제 코드에서 확인된 기능만. 추측 금지
+- **Tech Stack**: 테이블 형식. 버전은 설정 파일의 실제 버전
+- **Installation/Usage**: `scripts`에서 확인된 명령어만. 없는 스크립트 기재 금지
+- **Project Structure**: 실제 디렉토리 확인 후 주요 파일에 한 줄 설명
+- **이모지**: 섹션 제목(##)에만 사용, 본문에는 미사용
+- **Troubleshooting**: 프로젝트 타입에 맞는 일반적 에러 3개 이상 포함
+- **Security**: .gitignore에 포함된 민감 파일 목록, 환경 변수 관리법 명시
+- **라인 수/파일 크기 하드코딩 금지**: Project Structure 등에 "SKILL.md (727 lines)" 같은 고정 수치를 넣지 않는다. 파일 설명만 적는다. 숫자는 업데이트할 때마다 틀려지므로.
+
+#### E) 기존 README 다듬기
+
+**절대 규칙: 기존 내용 100% 보존하면서 품질 향상**
+- 위 필수 섹션 기준으로 누락 섹션 추가
+- 구조 정리, 문장 교정, 뱃지 추가, 마크다운 문법 수정
+- 기존 정보 삭제 금지, 이미지 경로·외부 링크 유지
+
+#### F) 한↔영 번역 규칙
+
+1. 원본 내용 100% 보존 (정보 누락·임의 추가 금지)
+2. 고유명사·명령어·코드블록 변경 금지
+3. 한글판: 기술 용어 영문 병기 (예: "의존성(dependencies)")
+4. 구조 완전 동기화: 섹션 순서, 코드블록, 이미지, 뱃지, 링크 모두 동일
+
+#### G) 다국어 확장 전략 (3개 국어 이상)
+
+기본은 영/한 2개 언어이지만, 사용자가 추가 언어를 요청하면 아래 규칙을 따른다.
+
+**파일 명명 규칙:**
+
+| 언어 | 파일명 | IETF 코드 |
+|---|---|---|
+| English (기본) | `README.md` | - (기본이므로 코드 불필요) |
+| 한국어 | `README.ko.md` | ko |
+| 日本語 | `README.ja.md` | ja |
+| 中文 (简体) | `README.zh-CN.md` | zh-CN |
+| 中文 (繁體) | `README.zh-TW.md` | zh-TW |
+| Español | `README.es.md` | es |
+| Français | `README.fr.md` | fr |
+| Deutsch | `README.de.md` | de |
+| Português | `README.pt-BR.md` | pt-BR |
+
+**다국어 언어 전환 링크** (파일 상단):
+
+2개 언어: `🌏 [한국어](README.ko.md) | [English](README.md)`
+3개 이상: `🌏 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)`
+
+**다국어 동기화 규칙:**
+- 모든 언어 파일은 `README.md` (영문)을 **원본(source of truth)**으로 한다
+- 영문 변경 시 → 다른 언어 파일도 모두 동기화
+- 각 언어 파일의 언어 전환 링크에 **모든 언어**를 포함
+- 코드블록, 뱃지, 이미지 경로는 모든 언어에서 동일
+
+**3개 국어 이상일 때 추가 제안:**
+- 루트에 `docs/` 폴더를 만들어 번역 파일을 관리하는 방법도 안내
+  (예: `docs/README.ja.md` — 단, GitHub 기본 표시는 루트만 인식)
+
+### 2-4. LICENSE
 
 LICENSE가 없으면 안내 후 생성. 모르겠다고 하면 MIT 추천.
 
-| 라이선스 | 한 줄 설명 | 추천 상황 |
+| 라이선스 | 설명 | 추천 |
 |---|---|---|
-| MIT | 자유롭게 사용·수정·배포 가능 | 기본 추천 |
+| MIT | 자유롭게 사용·수정·배포 | 기본 추천 |
 | Apache 2.0 | MIT + 특허권 보호 | 기업 프로젝트 |
-| GPL 3.0 | 수정 시 동일 라이선스로 공개 필수 | 오픈소스 강제 유지 |
+| GPL 3.0 | 동일 라이선스 공개 필수 | 오픈소스 강제 |
 
-**현재 연도**(오늘 날짜 기준)와 저작자명을 자동으로 채운다.
+**현재 연도**(오늘 날짜 기준) + 저작자명 자동 입력.
+
+### 2-5. 릴리즈 문서 (업데이트/릴리즈 모드)
+
+#### A) 버전 관리 규칙 (Semantic Versioning)
+
+사용자가 버전 번호를 모르면 아래 규칙을 안내하고, 적절한 버전을 제안한다:
+
+```
+버전 형식: MAJOR.MINOR.PATCH (예: 1.2.3)
+
+MAJOR (1.x.x → 2.0.0): 호환성이 깨지는 대규모 변경
+  예: API 구조 변경, 기존 기능 삭제, 데이터 형식 변경
+MINOR (1.1.x → 1.2.0): 하위 호환되는 새 기능 추가
+  예: 새 API 추가, 새 옵션 추가, 성능 개선
+PATCH (1.1.1 → 1.1.2): 하위 호환되는 버그 수정
+  예: 오타 수정, 크래시 수정, 보안 패치
+```
+
+**첫 릴리즈**: `1.0.0` (또는 아직 불안정하면 `0.1.0`)
+**프리릴리즈**: `1.0.0-beta.1`, `1.0.0-rc.1`
+
+`package.json`, `pyproject.toml`, `pubspec.yaml` 등에 버전이 있으면 해당 파일의 버전도 함께 업데이트를 제안한다.
+
+#### B) CHANGELOG.md
+
+업데이트/릴리즈 모드에서 CHANGELOG가 없으면 생성을 제안한다. [Keep a Changelog](https://keepachangelog.com) 형식을 따른다:
+
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.1.0] - 2026-02-23
+### Added
+- 새로 추가된 기능 설명
+
+### Changed
+- 변경된 동작이나 기존 기능의 수정 사항
+
+### Fixed
+- 수정된 버그 설명
+
+### Deprecated
+- 곧 제거될 예정인 기능 (해당 시)
+
+### Removed
+- 제거된 기능 (해당 시)
+
+### Security
+- 보안 관련 수정 사항 (해당 시)
+
+## [1.0.0] - 2026-01-15
+### Added
+- 최초 릴리즈
+```
+
+**CHANGELOG 작성 규칙:**
+- 사용자에게 변경 내용을 구체적으로 물어본다
+- 코드 diff가 있으면 분석하여 자동으로 항목을 제안한다
+- 각 항목은 사용자 관점에서 "무엇이 달라졌는지"를 한 줄로 설명
+- 기존 CHANGELOG가 있으면 최상단에 새 버전 항목만 추가한다
+
+#### C) 릴리즈 노트 (GitHub Releases용)
+
+GitHub Releases 페이지에 붙여넣을 수 있는 릴리즈 노트를 별도로 생성한다. CHANGELOG보다 사용자 친화적으로 작성한다.
+
+**릴리즈 노트 구조** (순서대로):
+
+| # | 섹션 | 내용 |
+|---|---|---|
+| 1 | `# 🚀 v버전` | H1 제목 + 버전 |
+| 2 | 한 줄 요약 | 무엇이 달라졌는지 한 문장 |
+| 3 | `## ✨ 새로운 기능` | **기능명**: 사용자 관점의 설명 |
+| 4 | `## 🔧 개선 사항` | **항목**: 무엇이 좋아졌는지 |
+| 5 | `## 🐛 버그 수정` | **항목**: 어떤 문제가 해결되었는지 |
+| 6 | `## ⚠️ 주의 사항` | 업그레이드 시 주의점, 호환성 (해당 시만) |
+| 7 | `## 📦 설치/업데이트` | bash 코드블록으로 pull + install 명령어 |
+| 8 | 수평선 + Full Changelog 링크 | 비교 URL: `compare/v이전...v현재` |
+
+⚠️ 릴리즈 노트의 "설치/업데이트" 섹션에 bash 코드블록을 넣을 때도 **정상 마크다운 문법**을 사용한다. 이스케이프 금지.
+
+**릴리즈 노트 생성 규칙:**
+- CHANGELOG 내용을 기반으로 하되, 이모지 + 사용자 친화적 문장으로 재구성
+- 설치/업데이트 명령어를 포함
+- Full Changelog 비교 링크를 하단에 추가 (사용자명/프로젝트명은 사용자에게 확인)
+- 릴리즈 노트는 ZIP에 포함하지 않고, **텍스트로 대화에서 직접 제공**한다 (GitHub Releases에 붙여넣기용)
 
 ### 2-6. GitHub 전용 파일 (선택)
 
 | 파일 | 용도 | 제안 기준 |
 |---|---|---|
-| `CONTRIBUTING.md` | 기여 가이드 | 오픈소스 배포 목적 |
+| `CONTRIBUTING.md` | 기여 가이드 | 오픈소스 배포 |
 | `.github/ISSUE_TEMPLATE/` | 이슈 템플릿 | 팀/공개 프로젝트 |
-| `CHANGELOG.md` | 변경 이력 | 라이브러리, CLI, 패키지 |
+| `CHANGELOG.md` | 변경 이력 | 라이브러리, CLI |
 | `.github/FUNDING.yml` | 후원 링크 | 개인 오픈소스 |
+| `.github/workflows/ci.yml` | CI/CD 파이프라인 | 모든 프로젝트 (제안) |
 
-개인/학습용에는 제안하지 않는다.
+### 2-7. GitHub Actions CI 워크플로우 (선택)
+
+프로젝트에 `.github/workflows/` 폴더가 없으면, 기본 CI 워크플로우 생성을 **제안**한다 (자동 생성 아님).
+
+**제안 문구:**
+```
+💡 GitHub Actions CI를 추가할까요?
+  → push/PR 시 자동으로 린트, 테스트, 빌드를 실행합니다.
+  → 필요 없으면 건너뛰기 하세요!
+```
+
+사용자가 수락하면, 프로젝트 타입에 맞는 워크플로우를 생성한다:
+
+**프로젝트 타입별 CI 워크플로우 구성:**
+
+| 프로젝트 타입 | 파일명 | 주요 단계 |
+|---|---|---|
+| Node.js / React / Next.js | `ci.yml` | checkout → setup-node → npm ci → lint → test → build |
+| Python | `ci.yml` | checkout → setup-python → pip install → lint (ruff/flake8) → pytest |
+| Flutter / Dart | `ci.yml` | checkout → setup-flutter → pub get → analyze → test |
+| Rust | `ci.yml` | checkout → setup-rust → cargo fmt --check → cargo clippy → cargo test |
+| Go | `ci.yml` | checkout → setup-go → go vet → go test |
+
+**CI 워크플로우 생성 규칙:**
+- `on: push` + `pull_request` (main/master 브랜치)
+- Node 버전은 `package.json`의 `engines` 필드 참조, 없으면 `18`, `20` 매트릭스
+- Python 버전은 `pyproject.toml` 참조, 없으면 `3.11`, `3.12` 매트릭스
+- 테스트 스크립트(`test`)가 `package.json`에 없으면 테스트 단계 생략
+- 린트 도구가 `devDependencies`에 없으면 린트 단계 생략
+- 반드시 **실제 프로젝트에 존재하는 명령어만** 포함 (원칙 1 준수)
 
 ---
 
 ## [3] ZIP 패키징
 
-⚠️ **핵심: ZIP = 원본 소스 전체 + 신규/수정 파일. 신규만 따로 주는 것 금지.**
+⚠️ **핵심: ZIP = 원본 소스 전체 + 신규/수정 파일. 신규만 따로 주기 금지.**
 
 ### 3-1. 민감 정보 최종 점검
 
@@ -380,8 +935,6 @@ LICENSE가 없으면 안내 후 생성. 모르겠다고 하면 MIT 추천.
 ### 3-3. 안전한 파일 복사 및 ZIP 생성
 
 ⚠️ **`cp -r 원본/*`을 쓰지 않는다.** node_modules 등이 함께 복사되어 ZIP이 수백 MB가 될 수 있다.
-
-**안전한 패키징 절차:**
 
 ```bash
 # 변수 설정
@@ -405,12 +958,9 @@ rsync -a \
   --exclude='venv' \
   --exclude='.dart_tool' \
   --exclude='target' \
-  --exclude='.turbo' \
-  --exclude='.nuxt' \
-  --exclude='.output' \
   "$SRC/" "$DEST/"
 
-# rsync가 없으면 tar로 대체:
+# rsync 없으면 tar 대체:
 # cd "$SRC" && tar --exclude='node_modules' --exclude='.git' --exclude='dist' \
 #   --exclude='.env' -cf - . | (cd "$DEST" && tar xf -)
 
@@ -419,20 +969,19 @@ cp /home/claude/생성파일/README.md "$DEST/"
 cp /home/claude/생성파일/README.ko.md "$DEST/"
 cp /home/claude/생성파일/.gitignore "$DEST/"
 cp /home/claude/생성파일/LICENSE "$DEST/"
-# .env.example, .gitkeep 등도 해당 위치에 복사
+# .env.example, .gitkeep, CHANGELOG.md 등도 해당 위치에 복사
 
 # ③ 비표준 파일 정리 (해당 시)
-# 예: README_EN.md → README.md로 대체된 경우
-rm -f "$DEST/README_EN.md"
+rm -f "$DEST/README_EN.md"  # README.md로 대체된 경우
 
 # ④ ZIP 생성 + 출력
 cd /home/claude/github-ready && zip -r "/home/claude/$PROJECT.zip" "$PROJECT/"
 cp "/home/claude/$PROJECT.zip" /mnt/user-data/outputs/
 ```
 
-**rsync --exclude 목록은 2-1에서 생성한 .gitignore와 동기화한다.**
+**rsync --exclude 목록은 .gitignore와 동기화한다.**
 
-**lock 파일 처리**: 앱/서버 → 포함, 라이브러리 → 선택, 모르면 포함.
+**lock 파일**: 앱/서버 → 포함, 라이브러리 → 선택, 모르면 포함.
 
 ---
 
@@ -440,77 +989,408 @@ cp "/home/claude/$PROJECT.zip" /mnt/user-data/outputs/
 
 ZIP 생성 후, 사용자에게 전달하기 전에 반드시 수행한다.
 
-### 4-1. ZIP 내용물 확인
+### 4-1. 체크리스트 (15항목)
 
-```bash
-unzip -l /home/claude/프로젝트명.zip
-```
-
-### 4-2. 체크리스트 (10항목)
+**A) ZIP 구조 검증 (기존 10항목)**
 
 | # | 검증 항목 | 실패 시 |
 |---|---|---|
-| 1 | 원본 소스 파일이 전부 있는가? | [3]으로 돌아가서 누락 파일 복사 |
-| 2 | 설정 파일(package.json 등)이 있는가? | 누락 파일 복사 |
-| 3 | .gitignore가 있는가? | [2]로 돌아가서 생성 |
-| 4 | README.md + README.ko.md가 있는가? | [2]로 돌아가서 생성 |
-| 5 | LICENSE가 있는가? | [2]로 돌아가서 생성 |
-| 6 | node_modules가 없는가? | 제거 후 재압축 |
-| 7 | .env가 없는가? | 제거 후 재압축 |
-| 8 | dist/build 폴더가 없는가? | 제거 후 재압축 |
-| 9 | 비표준 파일이 정리되었는가? | 제거 |
-| 10 | LICENSE 연도가 현재 연도인가? | 수정 후 재압축 |
+| 1 | 원본 소스 파일 전부 포함? | [3]으로 돌아가 누락 복사 |
+| 2 | 설정 파일(package.json 등) 포함? | 누락 복사 |
+| 3 | .gitignore 포함? | [2]로 돌아가 생성 |
+| 4 | README.md(영문) + README.ko.md(한글) 포함? | [2]로 돌아가 생성 |
+| 5 | LICENSE 포함? | [2]로 돌아가 생성 |
+| 6 | node_modules 미포함? | 제거 후 재압축 |
+| 7 | .env 미포함? | 제거 후 재압축 |
+| 8 | dist/build 미포함? | 제거 후 재압축 |
+| 9 | 비표준 파일 정리 완료? | 제거 |
+| 10 | LICENSE 연도 = 현재 연도? | 수정 후 재압축 |
+
+**B) README 내용 검증 (신규 5항목)**
+
+| # | 검증 항목 | 검증 방법 | 실패 시 |
+|---|---|---|---|
+| 11 | Installation 명령어가 실제 존재? | package.json scripts와 대조 | 없는 스크립트 제거/수정 |
+| 12 | Tech Stack 버전이 정확? | 설정 파일의 실제 버전과 대조 | 정확한 버전으로 수정 |
+| 13 | Features가 실제 코드 기반? | 소스 코드에서 해당 기능 확인 | 확인 불가한 항목 제거 |
+| 14 | 필수 섹션 14개 모두 존재? | 섹션 제목 목록 대조 | 누락 섹션 추가 |
+| 15 | 영/한 README 구조 동기화? | 섹션 수, 코드블록 수 비교 | 불일치 섹션 동기화 |
+
+### 4-2. 검증 명령어
 
 ```bash
-# 핵심 파일 존재 확인
+ZIP="/home/claude/프로젝트명.zip"
+
+echo "=== 핵심 파일 존재 ==="
 unzip -l "$ZIP" | grep -E "(README\.md|README\.ko\.md|\.gitignore|LICENSE)"
 
-# 제외 대상 미포함 확인
+echo "=== 제외 대상 미포함 ==="
 unzip -l "$ZIP" | grep -E "(node_modules|\.env$|/dist/|/build/)" \
   && echo "⚠️ 제외 대상 발견!" || echo "✅ 클린"
 
-# LICENSE 연도 확인
+echo "=== LICENSE 연도 ==="
 unzip -p "$ZIP" "*/LICENSE" | head -3
+
+echo "=== 총 파일 수 ==="
+unzip -l "$ZIP" | tail -1
 ```
 
-### 4-3. 검증 실패 시
+### 4-3. README 내용 검증 (항목 11~15)
 
-문제를 즉시 수정하고 ZIP을 다시 만든다. 중간 보고 없이, 수정 완료 후 최종 결과만 전달한다.
+ZIP 구조 검증이 끝난 후, README 내용의 정확성을 검증한다. 아래를 **직접 확인**한다:
+
+```bash
+DEST="/home/claude/github-ready/프로젝트명"
+
+# 항목 11: Installation 명령어 검증
+echo "=== scripts 대조 ==="
+# package.json의 실제 scripts
+cat "$DEST/package.json" 2>/dev/null | grep -A20 '"scripts"' | head -25
+# README에 기재된 npm 명령어
+grep -E 'npm (run |start|install|build|dev|test)' "$DEST/README.md"
+
+# 항목 14: 필수 섹션 존재 확인
+echo "=== 필수 섹션 확인 ==="
+for section in "Overview" "Features" "Tech Stack" "Prerequisites" \
+  "Installation" "Usage" "How It Works" "Project Structure" \
+  "Troubleshooting" "Security" "Contributing" "License"; do
+  grep -q "## .*$section" "$DEST/README.md" \
+    && echo "  ✅ $section" || echo "  ❌ $section 누락"
+done
+
+# 항목 15: 영/한 구조 동기화 확인
+echo "=== 영/한 동기화 ==="
+EN_SEC=$(grep -c '^## ' "$DEST/README.md")
+KO_SEC=$(grep -c '^## ' "$DEST/README.ko.md")
+echo "  섹션 수: EN=$EN_SEC, KO=$KO_SEC"
+EN_CODE=$(grep -c '^```' "$DEST/README.md")
+KO_CODE=$(grep -c '^```' "$DEST/README.ko.md")
+echo "  코드블록: EN=$EN_CODE, KO=$KO_CODE"
+```
+
+**항목 12 (Tech Stack 버전)**: 수동 확인. README의 Tech Stack 테이블에 적힌 버전을 `package.json`, `pyproject.toml` 등의 실제 버전과 대조한다.
+
+**항목 13 (Features 실제성)**: 수동 확인. README의 Features 각 항목이 실제 소스 코드에서 확인 가능한지 점검한다. 확인 불가능한 항목은 제거하거나 사용자에게 확인한다.
+
+### 4-4. 검증 실패 시
+
+문제를 즉시 수정하고 ZIP을 다시 만든다. 수정 완료 후 최종 결과만 전달한다.
 
 ---
 
-## [5] 결과 전달 + GitHub 업로드 안내
+## [5] PDF 생성
 
-### 5-1. 완료 메시지
+README.md(영문) 내용을 기반으로 비개발자를 위한 PDF 문서를 생성한다. 한글 프로젝트명이나 한글 내용이 포함될 수 있으므로 **한글 폰트를 반드시 설치**한다.
+
+### 5-1. 한글 폰트 설치 (필수)
+
+`reportlab`은 기본적으로 한글을 지원하지 않는다. 아래 중 하나로 한글 폰트를 설치한다:
+
+```bash
+# 방법 1: 시스템 폰트 설치 (가장 안전)
+apt-get update && apt-get install -y fonts-nanum 2>/dev/null || true
+
+# 방법 2: pip 패키지로 설치
+pip install reportlab --break-system-packages
+
+# 한글 폰트 경로 확인 (설치 후)
+fc-list :lang=ko | head -3
+# 일반적 경로: /usr/share/fonts/truetype/nanum/NanumGothic.ttf
+```
+
+**폰트 탐색 우선순위:**
+1. `/usr/share/fonts/truetype/nanum/NanumGothic.ttf` (apt 설치)
+2. `/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf`
+3. 시스템에 한글 폰트가 없으면 → 영문 전용으로 생성 (한글 섹션은 "[Korean content - see README.ko.md]"로 대체)
+
+### 5-2. PDF 변환 알고리즘
+
+아래 절차를 **정확히** 따른다. 주석이 아닌 실제 동작하는 코드로 구현해야 한다.
+
+```python
+import re, os
+from datetime import datetime
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.colors import HexColor, black, white, lightgrey
+from reportlab.lib.units import mm
+from reportlab.lib.enums import TA_LEFT, TA_CENTER
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+    Preformatted, HRFlowable, KeepTogether
+)
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# ─── 1) 한글 폰트 등록 ───
+FONT_PATHS = [
+    "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
+    "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf",
+]
+KO_FONT = "Helvetica"  # 기본값 (fallback)
+KO_FONT_BOLD = "Helvetica-Bold"
+for fp in FONT_PATHS:
+    if os.path.exists(fp):
+        if "Bold" in fp:
+            pdfmetrics.registerFont(TTFont("NanumGothicBold", fp))
+            KO_FONT_BOLD = "NanumGothicBold"
+        else:
+            pdfmetrics.registerFont(TTFont("NanumGothic", fp))
+            KO_FONT = "NanumGothic"
+
+# ─── 2) 스타일 정의 ───
+styles = getSampleStyleSheet()
+
+CUSTOM_STYLES = {
+    "Title": ParagraphStyle("DocTitle", parent=styles["Title"],
+        fontName=KO_FONT_BOLD, fontSize=22, spaceAfter=6*mm,
+        textColor=HexColor("#1a1a2e")),
+    "Subtitle": ParagraphStyle("DocSubtitle", parent=styles["Normal"],
+        fontName=KO_FONT, fontSize=10, textColor=HexColor("#666666"),
+        spaceAfter=8*mm, alignment=TA_CENTER),
+    "H1": ParagraphStyle("Heading1", parent=styles["Heading1"],
+        fontName=KO_FONT_BOLD, fontSize=16, spaceBefore=8*mm,
+        spaceAfter=3*mm, textColor=HexColor("#2d3436")),
+    "H2": ParagraphStyle("Heading2", parent=styles["Heading2"],
+        fontName=KO_FONT_BOLD, fontSize=13, spaceBefore=5*mm,
+        spaceAfter=2*mm, textColor=HexColor("#2d3436")),
+    "H3": ParagraphStyle("Heading3", parent=styles["Heading3"],
+        fontName=KO_FONT_BOLD, fontSize=11, spaceBefore=3*mm,
+        spaceAfter=1.5*mm),
+    "Body": ParagraphStyle("DocBody", parent=styles["Normal"],
+        fontName=KO_FONT, fontSize=10, leading=14, spaceAfter=2*mm),
+    "Bullet": ParagraphStyle("DocBullet", parent=styles["Normal"],
+        fontName=KO_FONT, fontSize=10, leading=14,
+        leftIndent=8*mm, bulletIndent=3*mm, spaceAfter=1*mm),
+    "Code": ParagraphStyle("DocCode",
+        fontName="Courier", fontSize=8.5, leading=11,
+        leftIndent=4*mm, rightIndent=4*mm,
+        backColor=HexColor("#f5f5f5"), borderPadding=4,
+        spaceAfter=3*mm, spaceBefore=2*mm),
+}
+
+# ─── 3) 마크다운 → PDF 요소 변환 ───
+def md_to_elements(md_text, project_name):
+    """README.md 텍스트를 reportlab 요소 리스트로 변환"""
+    elements = []
+
+    # 제목 + 날짜
+    elements.append(Paragraph(project_name, CUSTOM_STYLES["Title"]))
+    elements.append(Paragraph(
+        f"Generated on {datetime.now().strftime('%Y-%m-%d')}",
+        CUSTOM_STYLES["Subtitle"]))
+    elements.append(HRFlowable(width="100%", thickness=1,
+        color=HexColor("#dddddd"), spaceAfter=5*mm))
+
+    # 뱃지 라인 제거, 언어 전환 링크 제거
+    lines = md_text.split("\n")
+    i = 0
+    in_code_block = False
+    code_buffer = []
+
+    while i < len(lines):
+        line = lines[i]
+
+        # 코드블록 시작/끝
+        if line.strip().startswith("```"):
+            if in_code_block:
+                # 코드블록 끝
+                code_text = "\n".join(code_buffer)
+                if code_text.strip():
+                    elements.append(Preformatted(
+                        code_text, CUSTOM_STYLES["Code"]))
+                code_buffer = []
+                in_code_block = False
+            else:
+                in_code_block = True
+            i += 1
+            continue
+
+        if in_code_block:
+            code_buffer.append(line)
+            i += 1
+            continue
+
+        # 빈 줄
+        if not line.strip():
+            i += 1
+            continue
+
+        # 뱃지/이미지 라인 건너뛰기
+        if line.strip().startswith("[![") or line.strip().startswith("!["):
+            i += 1
+            continue
+
+        # 언어 전환 링크 건너뛰기
+        if line.strip().startswith("🌏"):
+            i += 1
+            continue
+
+        # 제목 (# → H1, ## → H2 등)
+        heading_match = re.match(r"^(#{1,3})\s+(.+)", line)
+        if heading_match:
+            level = len(heading_match.group(1))
+            text = heading_match.group(2).strip()
+            # 이모지 유지
+            style_key = {1: "H1", 2: "H1", 3: "H2"}.get(level, "H2")
+            elements.append(Paragraph(text, CUSTOM_STYLES[style_key]))
+            i += 1
+            continue
+
+        # 테이블 감지 (| 로 시작하는 연속 줄)
+        if line.strip().startswith("|"):
+            table_lines = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                table_lines.append(lines[i])
+                i += 1
+            # 구분선(|---|) 제거 후 테이블 생성
+            data_lines = [l for l in table_lines
+                          if not re.match(r"^\|[\s\-:|]+\|$", l.strip())]
+            if data_lines:
+                table_data = []
+                for tl in data_lines:
+                    cells = [c.strip() for c in tl.strip().strip("|").split("|")]
+                    table_data.append(cells)
+                if table_data:
+                    t = Table(table_data, repeatRows=1)
+                    t.setStyle(TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, 0), HexColor("#f0f0f0")),
+                        ("FONTNAME", (0, 0), (-1, 0), KO_FONT_BOLD),
+                        ("FONTNAME", (0, 1), (-1, -1), KO_FONT),
+                        ("FONTSIZE", (0, 0), (-1, -1), 9),
+                        ("GRID", (0, 0), (-1, -1), 0.5, HexColor("#cccccc")),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("TOPPADDING", (0, 0), (-1, -1), 3),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                    ]))
+                    elements.append(Spacer(1, 2*mm))
+                    elements.append(t)
+                    elements.append(Spacer(1, 3*mm))
+            continue
+
+        # 불릿 리스트
+        bullet_match = re.match(r"^(\s*)[*\-]\s+(.+)", line)
+        if bullet_match:
+            text = bullet_match.group(2)
+            text = clean_md_inline(text)
+            elements.append(Paragraph(
+                f"• {text}", CUSTOM_STYLES["Bullet"]))
+            i += 1
+            continue
+
+        # 번호 리스트
+        num_match = re.match(r"^(\s*)\d+\.\s+(.+)", line)
+        if num_match:
+            text = clean_md_inline(num_match.group(2))
+            elements.append(Paragraph(text, CUSTOM_STYLES["Bullet"]))
+            i += 1
+            continue
+
+        # 인용구 (>)
+        if line.strip().startswith(">"):
+            text = clean_md_inline(line.strip().lstrip(">").strip())
+            elements.append(Paragraph(
+                f"<i>{text}</i>", CUSTOM_STYLES["Body"]))
+            i += 1
+            continue
+
+        # 수평선
+        if re.match(r"^[\-\*_]{3,}$", line.strip()):
+            elements.append(HRFlowable(width="100%", thickness=0.5,
+                color=HexColor("#dddddd"), spaceBefore=3*mm, spaceAfter=3*mm))
+            i += 1
+            continue
+
+        # 일반 텍스트
+        text = clean_md_inline(line.strip())
+        if text:
+            elements.append(Paragraph(text, CUSTOM_STYLES["Body"]))
+        i += 1
+
+    return elements
+
+def clean_md_inline(text):
+    """인라인 마크다운을 PDF 호환 형식으로 변환"""
+    text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)    # **bold**
+    text = re.sub(r"\*(.+?)\*", r"<i>\1</i>", text)         # *italic*
+    text = re.sub(r"`(.+?)`", r"<font face='Courier' size='9'>\1</font>", text)  # `code`
+    text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)   # [text](url) → text
+    return text
+
+# ─── 4) PDF 생성 실행 ───
+def generate_pdf(readme_path, output_path, project_name):
+    """메인 PDF 생성 함수"""
+    with open(readme_path, "r", encoding="utf-8") as f:
+        md_text = f.read()
+
+    doc = SimpleDocTemplate(
+        output_path, pagesize=A4,
+        leftMargin=20*mm, rightMargin=20*mm,
+        topMargin=15*mm, bottomMargin=20*mm,
+        title=project_name, author="Generated by GitHub Upload Skill"
+    )
+
+    elements = md_to_elements(md_text, project_name)
+    doc.build(elements)
+    print(f"✅ PDF 생성 완료: {output_path}")
+
+# 사용 예시:
+# generate_pdf("README.md", "README.pdf", "My Project")
+```
+
+### 5-3. PDF 생성 규칙
+
+1. **소스**: README.md(영문)을 기본으로 변환. 사용자가 한글 PDF도 요청하면 README.ko.md도 변환
+2. **한글 폰트 실패 시**: 폰트 등록이 실패하면 영문 전용으로 생성하고, 한글 부분은 `[See README.ko.md for Korean content]`로 대체. 사용자에게 한글 PDF 미지원 사유를 안내
+3. **테이블**: 컬럼 수가 4개 이상이면 `colWidths`를 명시하여 페이지 초과 방지
+4. **코드블록**: 긴 코드는 폰트 크기를 8pt로 축소. 그래도 넘치면 줄바꿈 처리
+5. **에러 핸들링**: PDF 생성이 실패해도 ZIP 전달은 중단하지 않음. PDF 실패 시 사유를 안내하고 ZIP만 전달
+
+### 5-4. PDF 파일명
+
+- `README.pdf` (영문 기반)
+- (선택) `README.ko.pdf` (한글 기반, 사용자 요청 시)
+- ZIP에 포함하고, 개별 파일로도 제공
+
+---
+
+## [6] 결과 전달 + GitHub 업로드 안내
+
+### 6-1. 완료 메시지
 
 ```
 📋 GitHub 업로드 준비 완료!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💬 GitHub Description:
+  EN: 🧠 MCP server for collaborative AI memory
+  KO: 🧠 AI 협업 메모리를 위한 MCP 서버
+🏷️ Topics: mcp-server, typescript, ai-memory, claude, nodejs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📦 ZIP 포함 파일 (총 N개):
   [원본 유지] src/index.ts, package.json, tsconfig.json ...
-  [새로 생성] .gitignore, .env.example, LICENSE
-  [개선]     README.md, README.ko.md
+  [새로 생성] .gitignore, .env.example, LICENSE, README.pdf
+  [개선]     README.md (영문), README.ko.md (한글)
   [제외됨]   node_modules/, .env, dist/ (보안/용량)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ ZIP 다운로드 → GitHub에 업로드하면 끝!
+💡 GitHub Description + Topics를 레포 설정에 붙여넣기 하세요
+📄 README.pdf는 비개발자 공유용으로 활용하세요
 ```
 
-**반드시 포함:**
-- ZIP 파일 목록 (원본 유지 / 새로 생성 / 개선 / 제외됨 구분)
-- 삭제 필요 파일 안내 (예: `README_EN.md` 대체)
-- .env.example 생성 시: "배포 시 `.env` 파일을 만들어 값을 채워야 합니다" 안내
+### 6-2. GitHub 업로드 방법 안내
 
-### 5-2. GitHub 업로드 방법 안내
-
-사용자가 요청하면 아래 3가지 방법 중 하나를 안내한다:
+사용자가 요청하면 3가지 방법 중 하나를 안내:
 
 **방법 1: GitHub 웹 (가장 쉬움)**
 ```
 1. github.com 로그인 → "+" → "New repository"
-2. Repository name 입력 → "Create repository"
-3. "uploading an existing file" 클릭
-4. ZIP에서 꺼낸 파일들을 드래그 앤 드롭
-5. "Commit changes" → 끝!
+2. Repository name 입력
+3. Description에 위에서 제안한 설명 붙여넣기
+4. "Create repository" 클릭
+5. "uploading an existing file" 클릭
+6. ZIP에서 꺼낸 파일들을 드래그 앤 드롭
+7. "Commit changes" → 끝!
 ```
 
 **방법 2: GitHub Desktop (GUI)**
@@ -532,21 +1412,121 @@ git branch -M main
 git push -u origin main
 ```
 
+### 6-2-1. Social Preview 이미지 안내
+
+GitHub 레포지토리의 **Social Preview** (소셜 미리보기 이미지)는 링크를 공유할 때 표시되는 OG(Open Graph) 이미지다. 설정하면 SNS/Slack/Discord 등에서 레포 링크가 눈에 띄게 표시된다.
+
+**안내 시점:** 업로드 완료 후, 사용자가 관심을 보이면 안내한다.
+
+**설정 방법:**
+```
+1. GitHub 레포지토리 페이지 → "Settings" 탭
+2. 좌측 메뉴에서 "General"
+3. 아래로 스크롤 → "Social preview" 섹션
+4. "Edit" → 이미지 업로드 → "Save"
+```
+
+**이미지 권장 사양:**
+
+| 항목 | 권장값 |
+|---|---|
+| 크기 | 1280 × 640 px (2:1 비율) |
+| 최소 | 640 × 320 px |
+| 형식 | PNG, JPG, GIF |
+| 최대 용량 | 1MB |
+| 내용 | 프로젝트명 + 한 줄 설명 + 핵심 로고/아이콘 |
+
+**Social Preview 미설정 시:** GitHub이 자동으로 레포 이름 + Description + 언어 비율을 보여주므로, 필수는 아니다. 하지만 설정하면 클릭률이 높아진다.
+
+### 6-3. 업데이트 모드 완료 메시지
+
+```
+📋 업데이트 준비 완료!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 변경 사항:
+  [수정] README.md - Features 섹션 업데이트
+  [수정] README.ko.md - 영문과 동기화
+  [추가] CHANGELOG.md - v1.1.0 항목 추가
+  [수정] README.pdf - 최신 내용 반영
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ 변경된 파일을 기존 레포에 커밋하면 끝!
+📋 릴리즈 노트도 준비했어요 → 아래 내용을 GitHub Releases에 붙여넣기 하세요
+```
+
+### 6-4. GitHub Releases 생성 방법 안내
+
+릴리즈 모드에서 사용자가 요청하면 (또는 릴리즈 노트를 생성했을 때) GitHub Releases 페이지 생성 방법을 안내한다:
+
+**방법 1: GitHub 웹 (가장 쉬움)**
+```
+1. GitHub 레포지토리 페이지로 이동
+2. 오른쪽 사이드바에서 "Releases" 클릭 (또는 "Create a new release")
+3. "Draft a new release" 클릭
+4. Tag 설정:
+   - "Choose a tag" 클릭 → 새 태그 입력 (예: v1.1.0) → "Create new tag: v1.1.0 on publish"
+5. Release title 입력 (예: "v1.1.0 - 새 기능 추가")
+6. 본문에 위에서 준비한 릴리즈 노트 붙여넣기
+7. (선택) 빌드 파일이 있으면 하단 "Attach binaries"에 드래그 앤 드롭
+8. "Publish release" → 끝!
+```
+
+**방법 2: GitHub Desktop + 웹**
+```
+1. GitHub Desktop에서 변경사항 커밋 + Push
+2. 웹 브라우저에서 GitHub 레포 → Releases → "Draft a new release"
+3. 이후는 방법 1의 4~8번과 동일
+```
+
+**방법 3: Git CLI**
+```bash
+# 변경사항 커밋
+git add .
+git commit -m "Release v1.1.0: 변경 요약"
+git push origin main
+
+# 태그 생성 + 푸시
+git tag -a v1.1.0 -m "v1.1.0 릴리즈"
+git push origin v1.1.0
+
+# 이후 GitHub 웹에서 Releases → "Draft a new release" →
+# 방금 푸시한 태그(v1.1.0) 선택 → 릴리즈 노트 붙여넣기 → Publish
+```
+
+**릴리즈 체크리스트** (안내용으로 사용자에게 제공):
+```
+□ CHANGELOG.md에 새 버전 항목 추가했나요?
+□ package.json (또는 해당 파일)의 version을 업데이트했나요?
+□ README에 변경사항이 반영되었나요?
+□ 민감 정보가 커밋에 포함되지 않았나요?
+□ 릴리즈 노트를 준비했나요?
+□ 태그 이름이 버전 형식(v1.1.0)을 따르나요?
+```
+
 ---
 
 ## 에러 방지 & 주의사항
 
-### 자주 발생하는 실수
+### 자주 발생하는 실수 + 자동 복구
 
-| 실수 | 원인 | 방지법 |
-|---|---|---|
-| ZIP에 원본 소스 빠짐 | 신규 파일만 ZIP에 넣음 | 원칙 5 + [4] 검증 항목 1,2 |
-| LICENSE 연도 틀림 | 기존 파일의 연도 복사 | 원칙 6 + [4] 검증 항목 10 |
-| node_modules 포함 | `cp -r *` 사용 | rsync --exclude + [4] 검증 항목 6 |
-| .env 포함 | 민감 파일 제외 누락 | [3-1] 점검 + rsync --exclude + [4] 검증 항목 7 |
-| 없는 스크립트 기재 | scripts 미확인 | 원칙 1: 실제 확인된 것만 |
-| ZIP 수백 MB | 빌드물/미디어 포함 | [3-2] 대용량 점검 |
-| 파일 인코딩 깨짐 | EUC-KR 등 | 복사 전 인코딩 확인 |
+| 실수 | 원인 | 감지 시점 | 자동 복구 절차 |
+|---|---|---|---|
+| ZIP에 원본 소스 빠짐 | 신규 파일만 넣음 | [4] 검증 항목 1 | rsync로 원본 재복사 → 신규 파일 덮어쓰기 → ZIP 재생성 |
+| LICENSE 연도 틀림 | 기존 파일 연도 복사 | [4] 검증 항목 10 | `date +%Y`로 현재 연도 확인 → LICENSE 파일 수정 → ZIP 재생성 |
+| node_modules 포함 | `cp -r *` 사용 | [4] 검증 항목 6 | ZIP에서 node_modules 포함 확인 → DEST에서 삭제 → ZIP 재생성 |
+| .env 포함 | 제외 누락 | [4] 검증 항목 7 | ZIP에서 .env 확인 → DEST에서 삭제 → ZIP 재생성 |
+| 없는 스크립트 기재 | scripts 미확인 | [4] 검증 항목 11 | package.json scripts와 대조 → README에서 잘못된 명령어 수정 → ZIP 재생성 |
+| ZIP 수백 MB | 빌드물/미디어 포함 | ZIP 생성 직후 크기 확인 | `du -sh` 후 10MB 초과 시 경고 → 대용량 파일 목록 확인 → 제외 후 재생성 |
+| README가 한글만 | 영문 README 미생성 | [4] 검증 항목 4 | README.md 내용이 한글인지 확인 → 영문으로 재작성 → 한글은 README.ko.md로 이동 |
+| PDF 미생성 | 단계 누락 | [6] 전달 직전 | PDF 파일 존재 확인 → 없으면 [5] PDF 생성 단계 실행 |
+| Description 미제안 | 단계 누락 | [1-7] 작업 계획 | 작업 계획에 Description 없으면 [1-6] 실행 후 추가 |
+| 필수 섹션 누락 | 템플릿 불완전 | [4] 검증 항목 14 | 누락 섹션 식별 → 프로젝트 분석 기반으로 해당 섹션 생성 → README 업데이트 |
+| 영/한 README 불일치 | 한쪽만 수정 | [4] 검증 항목 15 | 섹션 수/코드블록 수 비교 → 불일치 섹션 동기화 |
+| PDF에서 한글 깨짐 | 한글 폰트 미설치 | PDF 생성 직후 | reportlab 에러 발생 → fonts-nanum 설치 재시도 → 실패 시 영문 전용 PDF |
+
+**자동 복구 원칙:**
+- 복구 후 반드시 해당 검증 항목을 **재실행**하여 수정 확인
+- 복구가 2회 이상 실패하면 사용자에게 상황 보고 + 수동 수정 요청
+- 복구 과정에서 사용자의 원본 파일은 절대 수정하지 않음 (DEST 복사본만 수정)
 
 ### 경로 주의사항
 

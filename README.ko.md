@@ -173,7 +173,7 @@ Description 만들어줘              # GitHub Description 생성
 
 ```
 github-upload/
-├── SKILL.md          # 스킬 정의 — Claude에 대한 지시사항 (727줄)
+├── SKILL.md          # 스킬 정의 — Claude에 대한 지시사항
 ├── README.md         # 영문 문서 (이 파일의 영문 버전)
 ├── README.ko.md      # 한글 문서 (이 파일)
 └── LICENSE           # MIT 라이선스
